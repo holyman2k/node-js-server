@@ -1,47 +1,22 @@
-var sys = require("util"),
-    http = require("http"),
+var http = require("http"),
 	url = require("url"),
 	path = require("path"),
 	fs = require("fs"),
 	mime = require("mime");
-	
-function onRequest(request, response) {
-		
-		var uri = url.parse(request.url).pathname;
-		
-		var filename = path.join(process.cwd(), uri);
-			
-		filename = uri == "/" ? path.join(process.cwd(), "index.html") : filename;
-		
-		path.exists(filename, function(exists){
-		
-			var mimeType = mime.lookup(filename);
-			
-			console.log("file path: " + filename + ", mime type: " + mimeType);
-			
-			if (!exists) {
-			
-				response.writeHead(404, {"Content-Type": "text/plain"});
-				response.end("404 Not Found \n");
-				return;
-			}
-			
-			fs.readFile(filename, "binary", function(err, file) {
-			
-				if (err) {
-					response.writeHead(500, {"Content-Type": "text/plain"});
-					response.end(err + "\n");
-					return;
-				}
-				response.writeHead(200, {"Content-Type": mimeType}); //response.writeHead(200);
-				
-				response.end(file, "binary");
-			});
-		});
-	}
 
-function start() {
-		
+function start(router) {
+    
+    function onRequest(request, response) {
+            
+        var path = url.parse(request.url).pathname;
+        
+        router.route(path);
+        
+        response.writeHead(200, {"Content-Type": "text/plain"});
+        response.write("hello");
+        response.end();
+    }
+    
 	var port = process.env.C9_PORT;
 	port = port === undefined ? "80" : port;
 
@@ -50,5 +25,5 @@ function start() {
 
 	console.log("Server running at http://localhost:" + port + "/");
 }
-
+    
 exports.start = start;
